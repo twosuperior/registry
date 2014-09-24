@@ -9,7 +9,7 @@ Add the following into your `composer.json` file:
 ```json
 {
 	"require": {
-		"twosuperior\registry": "1.0.x"
+		"twosuperior/registry": "1.0.x"
 	}
 }
 ```
