@@ -27,6 +27,16 @@ class RegistryFluentDriverTest extends \PHPUnit_Framework_TestCase {
         m::close();
     }
 
+    public function testAllMethod()
+    {
+        $registry = $this->getInstance();
+
+        $this->app['db']->shouldReceive('table')->andReturn($this->query);
+        $this->query->shouldReceive('where')->with('key', '=', 'twosuperior')->andReturn($this->query)->shouldReceive('first')->andReturn($this->getStub());
+
+        $this->assertTrue($registry->all());
+    }
+	
     public function testGetMethod()
     {
         $registry = $this->getInstance();

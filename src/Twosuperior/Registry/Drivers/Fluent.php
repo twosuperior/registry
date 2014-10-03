@@ -62,6 +62,18 @@ class Fluent implements DriverInterface {
 
 		return ( ! is_null($value) ) ? $value : $default;
 	}
+	
+	/**
+	 * Get all from registry
+	 *
+	 * @return mixed
+	 */
+	public function all()
+	{
+		if ( ! isset($this->cache_storage) ) return null;
+
+		return $this->cache_storage;
+	}
 
 	/**
 	 * Store value into registry

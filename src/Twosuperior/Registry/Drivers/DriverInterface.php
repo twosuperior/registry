@@ -3,6 +3,13 @@
 interface DriverInterface {
 
     /**
+     * Get all from registry
+     * 
+     * @return mixed
+     */
+    public function all();
+
+    /**
      * Get value from registry
      * 
      * @param  string $key
@@ -10,7 +17,7 @@ interface DriverInterface {
      * @return mixed
      */
     public function get($key, $default = null);
-
+	
     /**
      * Set value into registry
      * 

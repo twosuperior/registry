@@ -63,10 +63,15 @@ Dump all values from an item
 Registry::dump('foo');
 ```
 
+Retrieve all items from registry
+```php
+Registry::all();
+```
+
 Mass update
 
 ```php
-$settings = Input::only('site_name', 'company_address', 'email');
+$settings = Input::only('name', 'address', 'email');
 
 Registry::store($settings);
 ```
