@@ -2,6 +2,7 @@
 
 Laravel 4/5 Registry Manager for storing application specific settings. A mashup of https://github.com/theelphie/registry and https://github.com/torann/laravel-4-registry. A big thanks to @Torann and @theelphie. 
 
+Thanks also to @srlabs for his blog on [Laravel 5 Package Development](http://stagerightlabs.com/blog/laravel5-pacakge-development-service-provider)
 
 ## Installation for Laravel 5
 
