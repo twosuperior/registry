@@ -1,47 +1,41 @@
-<?php namespace Twosuperior\Registry\Drivers;
+<?php namespace Twosuperior\Registry;
 
 use Cache;
+use Exception;
+use Illuminate\Database\DatabaseManager;
 
-class Fluent implements DriverInterface {
+class Registry {
 
 	/**
 	 * Registry cache
 	 *
 	 * @var object
 	 */
-	protected $cache_storage = null;
+	protected $storage = null;
 	
     /**
      * Application instance
      * 
      * @var Illuminate\Foundation\Application
      */
-    protected $app;
+    protected $config;
 
     /**
-     * Registry table name
+     * Database
      * 
      * @var string
      */
-    protected $table;
-	
-    /**
-     * Cache name
-     * 
-     * @var string
-     */
-    protected $cache;
+    protected $database;
 
     /**
      * Constructor
      * 
      * @param Illuminate\Foundation\Application $app
      */
-    public function __construct($app)
+    public function __construct(DatabaseManager $database, $config = array())
     {
-        $this->app = $app;
-        $this->table = $this->app['config']->get('twosuperior/registry::table', 'registry');
-		$this->cache = $this->app['config']->get('twosuperior/registry::cache', 'twosuperior.registry');
+		$this->config = $config;
+        $this->database = $database;
 		
 		// Ensure cache is set
 		$this->setCache();
@@ -70,9 +64,9 @@ class Fluent implements DriverInterface {
 	 */
 	public function all()
 	{
-		if ( ! isset($this->cache_storage) ) return null;
+		if ( ! isset($this->storage) ) return null;
 
-		return $this->cache_storage;
+		return $this->storage;
 	}
 
 	/**
@@ -101,18 +95,18 @@ class Fluent implements DriverInterface {
 				(trim($level, '.') == $searchKey) ? array_set($object, trim($level, '.'), $value) : array_set($object, trim($level, '.'), array());
 			}
 
-			$this->app['db']->table($this->table)->insert(array('key' => $baseKey, 'value' => json_encode($object)));
+			$this->database->table($this->config['table'])->insert(array('key' => $baseKey, 'value' => json_encode($object)));
 
-			$this->cache_storage[$baseKey] = $object;
+			$this->storage[$baseKey] = $object;
 		}
 		else
 		{
-			$this->app['db']->table($this->table)->insert(array('key' => $baseKey, 'value' => json_encode($value)));
+			$this->database->table($this->config['table'])->insert(array('key' => $baseKey, 'value' => json_encode($value)));
 
-			$this->cache_storage[$baseKey] = $value;
+			$this->storage[$baseKey] = $value;
 		}
 
-		Cache::forever($this->cache, $this->cache_storage);
+		Cache::forever($this->config['cache'], $this->storage);
 
 		return true;
 	}
@@ -135,18 +129,18 @@ class Fluent implements DriverInterface {
 		if ($baseKey !=  $searchKey)
 		{
 			array_set($registry, $searchKey, $value);
-			$this->app['db']->table($this->table)->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
+			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
 
-			$this->cache_storage[$baseKey] = $registry;
+			$this->storage[$baseKey] = $registry;
 		}
 		else
 		{
-			$this->app['db']->table($this->table)->where('key', '=', $baseKey)->update(array('value' => json_encode($value)));
+			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->update(array('value' => json_encode($value)));
 
-			$this->cache_storage[$baseKey] = $value;
+			$this->storage[$baseKey] = $value;
 		}
 
-		Cache::forever($this->cache, $this->cache_storage);
+		Cache::forever($this->config['cache'], $this->storage);
 
 		return true;
 	}
@@ -162,14 +156,14 @@ class Fluent implements DriverInterface {
 		foreach ($values as $key=>$value)
 		{
 			$jsonValue = json_encode($value);
-			$this->app['db']->statement("INSERT INTO ? ( `key`, `value` ) VALUES ( ?, ? )
+			$this->database->statement("INSERT INTO ? ( `key`, `value` ) VALUES ( ?, ? )
 										ON DUPLICATE KEY UPDATE `key` = ?, `value` = ?",
-										array($this->table, $key, $jsonValue, $key, $jsonValue));
+										array($this->config['table'], $key, $jsonValue, $key, $jsonValue));
 
-			$this->cache_storage[$key] = $value;
+			$this->storage[$key] = $value;
 		}
 
-		Cache::forever($this->cache, $this->cache_storage);
+		Cache::forever($this->config['cache'], $this->storage);
 
 		return true;
 	}
@@ -191,18 +185,18 @@ class Fluent implements DriverInterface {
 		if ($baseKey !== $searchKey)
 		{
 			array_forget($registry, $searchKey);
-			$this->app['db']->table($this->table)->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
+			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
 
-			$this->cache_storage[$baseKey] = $registry;
+			$this->storage[$baseKey] = $registry;
 		}
 		else
 		{
-			$this->app['db']->table($this->table)->where('key', '=', $baseKey)->delete();
+			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->delete();
 
-			unset($this->cache_storage[$baseKey]);
+			unset($this->storage[$baseKey]);
 		}
 
-		Cache::forever($this->cache, $this->cache_storage);
+		Cache::forever($this->config['cache'], $this->storage);
 
 		return true;
 	}
@@ -228,11 +222,11 @@ class Fluent implements DriverInterface {
 	 */
 	public function flush()
 	{
-		Cache::forget($this->cache);
+		Cache::forget($this->config['cache']);
 
-		$this->cache_storage = null;
+		$this->storage = null;
 
-		return $this->app['db']->table($this->table)->truncate();
+		return $this->database->table($this->config['table'])->truncate();
 	}
 
 	/**
@@ -263,9 +257,9 @@ class Fluent implements DriverInterface {
 	 */
 	protected function fetchValue($key, $searchKey = null)
 	{
-		if ( ! isset($this->cache_storage[$key]) ) return null;
+		if ( ! isset($this->storage[$key]) ) return null;
 
-		$object = $this->cache_storage[$key];
+		$object = $this->storage[$key];
 
 		return ! is_null($searchKey) ? array_get($object, $searchKey, $object) : array_get($object, $key, $object);
 	}
@@ -277,12 +271,10 @@ class Fluent implements DriverInterface {
 	 */
 	protected function setCache()
 	{
-		$db = $this->app['db'];
-		
-		$this->cache_storage = Cache::rememberForever($this->cache, function() use ($db)
+		$this->storage = Cache::rememberForever($this->config['cache'], function()
 		{
 			$cache = array();
-			foreach($db->table($this->table)->get() as $setting)
+			foreach($this->database->table($this->config['table'])->get() as $setting)
 			{
 				$cache[$setting->key] = json_decode($setting->value, true);
 			}

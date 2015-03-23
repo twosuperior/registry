@@ -11,7 +11,7 @@ class CreateRegistryTable extends Migration {
      */
     public function up()
     {
-        Schema::create(Config::get('twosuperior/registry::table'), function($table)
+        Schema::create(Config::get('registry.table'), function($table)
         {
             $table->string('key');
             $table->text('value');
@@ -27,7 +27,7 @@ class CreateRegistryTable extends Migration {
      */
     public function down()
     {
-        Schema::drop(Config::get('twosuperior/registry::table'));
+        Schema::drop(Config::get('registry.table'));
     }
 
 }

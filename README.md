@@ -1,8 +1,21 @@
 ## Registry Manager
 
-Laravel 4 Registry Manager for storing application specific settings. A mashup of https://github.com/theelphie/registry and https://github.com/torann/laravel-4-registry. A big thanks to @Torann and @theelphie. 
+Laravel 4/5 Registry Manager for storing application specific settings. A mashup of https://github.com/theelphie/registry and https://github.com/torann/laravel-4-registry. A big thanks to @Torann and @theelphie. 
 
-## Installation
+
+## Installation for Laravel 5
+
+Add the following into your `composer.json` file:
+
+```json
+{
+	"require": {
+		"twosuperior/registry": "2.0.x"
+	}
+}
+```
+
+## Installation for Laravel 4
 
 Add the following into your `composer.json` file:
 
@@ -13,6 +26,8 @@ Add the following into your `composer.json` file:
 	}
 }
 ```
+
+## Post Install Setup
 
 Add the service provider and alias into your `app/config/app.php`
 

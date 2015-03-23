@@ -1,6 +1,7 @@
 <?php namespace Twosuperior\Registry;
 
 use Illuminate\Support\ServiceProvider;
+use ReflectionClass;
 
 class RegistryServiceProvider extends ServiceProvider {
 
@@ -18,7 +19,10 @@ class RegistryServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-        $this->package('twosuperior/registry', 'twosuperior/registry');
+	    $this->publishes([
+		   $this->guessPackagePath() . '/config/config.php' => config_path('registry.php'),
+		   $this->guessPackagePath() . '/migrations/' => base_path('/database/migrations'),
+		]);
     }
 
     /**
@@ -28,12 +32,23 @@ class RegistryServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->app['twosuperior.registry'] = $this->app->share(function($app)
-        {
-            return new RegistryManager($app);
-        });
+		$this->registerRegistry();
     }
 
+	/**
+	* Register the collection repository.
+	*
+	* @return void
+	*/
+	protected function registerRegistry()
+	{
+		$this->app['registry'] = $this->app->share(function($app)
+		{
+			$config = $app->config->get('registry', array());
+			return new Registry($app['db'], $config);
+		});
+	}
+	
     /**
      * Get the services provided by the provider.
      *
@@ -41,7 +56,17 @@ class RegistryServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('twosuperior.registry');
+        return array('registry');
     }
 
+	/**
+	 * Guess real path of the package.
+	 *
+	 * @return string
+	 */
+	public function guessPackagePath()
+	{
+		$path = (new ReflectionClass($this))->getFileName();
+		return realpath(dirname($path).'/../');
+	}
 }

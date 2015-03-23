@@ -9,6 +9,6 @@ class Registry extends Facade {
 	 *
 	 * @return string
 	 */
-	protected static function getFacadeAccessor() { return 'twosuperior.registry'; }
+	protected static function getFacadeAccessor() { return 'registry'; }
 
 }

@@ -2,25 +2,26 @@
 
 return array(
 
-     /*
+    /*
     |--------------------------------------------------------------------------
-    | Default registry driver
+    | Default registry cache name
     |--------------------------------------------------------------------------
     |
-    | Only "fluent" drivers is supported for now
+    | Default cache name use by registry. You may change it to
+    | what ever you prefer
     |
     */
-    'default' => 'fluent',
+    'cache' => env('REGISTRY_CACHE', 'registry'),
 
-     /*
+    /*
     |--------------------------------------------------------------------------
     | Default registry table
     |--------------------------------------------------------------------------
     |
-    | Default table name use by fluent driver. You may change it to
+    | Default table name use by database. You may change it to
     | what ever you prefer
     |
     */
-    'table' => 'registry',
+    'table' => env('REGISTRY_TABLE', 'registry'),
 
 );
