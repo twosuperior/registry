@@ -19,10 +19,14 @@ class RegistryServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-	    $this->publishes([
-		   $this->guessPackagePath() . '/config/config.php' => config_path('registry.php'),
-		   $this->guessPackagePath() . '/migrations/' => base_path('/database/migrations'),
-		]);
+		$this->publishes([
+    			$this->guessPackagePath() . '/config/config.php' => config_path('registry.php')
+		], 'config');
+
+		// Publish your migrations
+		$this->publishes([
+    			$this->guessPackagePath() . '/migrations/' => database_path('/migrations')
+		], 'migrations');
     }
 
     /**
