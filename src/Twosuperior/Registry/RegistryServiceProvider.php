@@ -71,6 +71,6 @@ class RegistryServiceProvider extends ServiceProvider {
 	public function guessPackagePath()
 	{
 		$path = (new ReflectionClass($this))->getFileName();
-		return realpath(dirname($path).'/../');
+		return realpath(dirname($path) . '/../../');
 	}
 }

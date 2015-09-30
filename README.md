@@ -28,7 +28,21 @@ Add the following into your `composer.json` file:
 }
 ```
 
-## Post Install Setup
+## Post Install Setup for Laravel 5
+
+Add the service provider and alias into your `app/config/app.php`
+
+```php
+'providers' => [
+	Twosuperior\Registry\RegistryServiceProvider::class,
+],
+
+'Registry' => Twosuperior\Registry\Facades\Registry::class,
+```
+
+Run `php artisan vendor:publish`
+
+## Post Install Setup for Laravel 4
 
 Add the service provider and alias into your `app/config/app.php`
 
