@@ -220,6 +220,21 @@ class Registry {
 	 * @param  string $key
 	 * @return bool
 	 */
+	public function clear()
+	{
+		// forget cache
+		Cache::forget($this->config['cache']);
+
+		// Ensure new cache is set
+		$this->setCache();
+	}
+	
+	/**
+	 * Clear registry
+	 *
+	 * @param  string $key
+	 * @return bool
+	 */
 	public function flush()
 	{
 		Cache::forget($this->config['cache']);

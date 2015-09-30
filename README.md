@@ -83,6 +83,11 @@ Registry::forget('foo');
 Registry::forget('foo.bar');
 ```
 
+Clear cache and reload registry
+```php
+Registry::clear();
+```
+
 Flush registry table
 ```php
 Registry::flush();
