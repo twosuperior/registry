@@ -260,7 +260,7 @@ class Registry {
 			return array(array_get($keys, 0), implode('.', $search));
 		}
 
-		return array($key, $key);
+		return array($key, null);
 	}
 
 	/**
