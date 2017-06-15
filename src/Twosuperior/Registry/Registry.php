@@ -276,7 +276,7 @@ class Registry {
 
 		$object = $this->storage[$key];
 
-		return ! is_null($searchKey) ? array_get($object, $searchKey, $object) : array_get($object, $key, $object);
+		return array_get($object, $searchKey);
 	}
 
 	/**
