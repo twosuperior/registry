@@ -48,8 +48,8 @@ class RegistryServiceProvider extends ServiceProvider {
 	{
 		$this->app->singleton('registry', function()
 		{
-			$config = $app->config->get('registry', array());
-			return new Registry($app['db'], $config);
+			$config = $this->app->config->get('registry', array());
+			return new Registry($this->app['db'], $config);
 		});
 	}
 	
