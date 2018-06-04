@@ -32,9 +32,9 @@ class Registry {
      * 
      * @param Illuminate\Foundation\Application $app
      */
-    public function __construct(DatabaseManager $database, $config = array())
+    public function __construct(DatabaseManager $database)
     {
-		$this->config = $config;
+		// load db
         $this->database = $database;
 		
 		// Ensure cache is set
@@ -51,10 +51,8 @@ class Registry {
 	public function get($key, $default = null)
 	{
 		list($baseKey, $searchKey) = $this->fetchKey($key);
-
 		$value = $this->fetchValue($baseKey, $searchKey);
-
-		return ( ! is_null($value) ) ? $value : $default;
+		return (!is_null($value)) ? $value : $default;
 	}
 	
 	/**
@@ -64,8 +62,10 @@ class Registry {
 	 */
 	public function all()
 	{
-		if ( ! isset($this->storage) ) return null;
+		// no storage
+		if (!isset($this->storage)) return null;
 
+		// else return all
 		return $this->storage;
 	}
 
@@ -81,33 +81,32 @@ class Registry {
 		list($baseKey, $searchKey) = $this->fetchKey($key);
 		$registry = $this->get($baseKey);
 
-		if ( ! is_null($registry)) return $this->overwrite($key, $value);
+		if (!is_null($registry)) return $this->overwrite($key, $value);
 
 		if ($baseKey != $searchKey)
 		{
+			// set defaults
 			$object = array();
 			$level = '';
 			$keys = explode('.', $searchKey);
 
+			// loop keys
 			foreach ($keys as $key)
 			{
 				$level .= '.'.$key;
 				(trim($level, '.') == $searchKey) ? array_set($object, trim($level, '.'), $value) : array_set($object, trim($level, '.'), array());
 			}
-
-			$this->database->table($this->config['table'])->insert(array('key' => $baseKey, 'value' => json_encode($object)));
-
+			$this->database->table(config('registry.table'))->insert(array('key' => $baseKey, 'value' => json_encode($object)));
 			$this->storage[$baseKey] = $object;
 		}
 		else
 		{
-			$this->database->table($this->config['table'])->insert(array('key' => $baseKey, 'value' => json_encode($value)));
-
+			$this->database->table(config('registry.table'))->insert(array('key' => $baseKey, 'value' => json_encode($value)));
 			$this->storage[$baseKey] = $value;
 		}
 
-		Cache::forever($this->config['cache'], $this->storage);
-
+		// remember and return
+		Cache::forever(config('registry.cache'), $this->storage);
 		return true;
 	}
 
@@ -126,22 +125,20 @@ class Registry {
 
 		if (is_null($registry)) throw new \Exception("Item [$key] does not exists");
 
-		if ($baseKey !=  $searchKey)
+		if ($baseKey != $searchKey)
 		{
 			array_set($registry, $searchKey, $value);
-			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
-
+			$this->database->table(config('registry.table'))->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
 			$this->storage[$baseKey] = $registry;
 		}
 		else
 		{
-			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->update(array('value' => json_encode($value)));
-
+			$this->database->table(config('registry.table'))->where('key', '=', $baseKey)->update(array('value' => json_encode($value)));
 			$this->storage[$baseKey] = $value;
 		}
 
-		Cache::forever($this->config['cache'], $this->storage);
-
+		// remmeber and return
+		Cache::forever(config('registry.cache'), $this->storage);
 		return true;
 	}
 
@@ -153,18 +150,16 @@ class Registry {
 	 */
 	public function store(array $values)
 	{
-		foreach ($values as $key=>$value)
+		// loop values
+		foreach ($values as $key => $value)
 		{
 			$jsonValue = json_encode($value);
-			$this->database->statement("INSERT INTO ? ( `key`, `value` ) VALUES ( ?, ? )
-										ON DUPLICATE KEY UPDATE `key` = ?, `value` = ?",
-										array($this->config['table'], $key, $jsonValue, $key, $jsonValue));
-
+			$this->database->statement("INSERT INTO ? ( `key`, `value` ) VALUES ( ?, ? ) ON DUPLICATE KEY UPDATE `key` = ?, `value` = ?", array(config('registry.table'), $key, $jsonValue, $key, $jsonValue));
 			$this->storage[$key] = $value;
 		}
 
-		Cache::forever($this->config['cache'], $this->storage);
-
+		// remmeber and return
+		Cache::forever(config('registry.cache'), $this->storage);
 		return true;
 	}
 
@@ -185,19 +180,17 @@ class Registry {
 		if ($baseKey !== $searchKey)
 		{
 			array_forget($registry, $searchKey);
-			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
-
+			$this->database->table(config('registry.table'))->where('key', '=', $baseKey)->update(array('value' => json_encode($registry)));
 			$this->storage[$baseKey] = $registry;
 		}
 		else
 		{
-			$this->database->table($this->config['table'])->where('key', '=', $baseKey)->delete();
-
+			$this->database->table(config('registry.table'))->where('key', '=', $baseKey)->delete();
 			unset($this->storage[$baseKey]);
 		}
 
-		Cache::forever($this->config['cache'], $this->storage);
-
+		// remmeber and return
+		Cache::forever(config('registry.cache'), $this->storage);
 		return true;
 	}
 
@@ -223,7 +216,7 @@ class Registry {
 	public function clear()
 	{
 		// forget cache
-		Cache::forget($this->config['cache']);
+		Cache::forget(config('registry.cache'));
 
 		// Ensure new cache is set
 		$this->setCache();
@@ -237,11 +230,9 @@ class Registry {
 	 */
 	public function flush()
 	{
-		Cache::forget($this->config['cache']);
-
+		Cache::forget(config('registry.cache'));
 		$this->storage = null;
-
-		return $this->database->table($this->config['table'])->truncate();
+		return $this->database->table(config('registry.table'))->truncate();
 	}
 
 	/**
@@ -256,7 +247,6 @@ class Registry {
 		{
 			$keys = explode('.', $key);
 			$search = array_except($keys, 0);
-
 			return array(array_get($keys, 0), implode('.', $search));
 		}
 
@@ -272,10 +262,8 @@ class Registry {
 	 */
 	protected function fetchValue($key, $searchKey = null)
 	{
-		if ( ! isset($this->storage[$key]) ) return null;
-
+		if (!isset($this->storage[$key])) return null;
 		$object = $this->storage[$key];
-
 		return array_get($object, $searchKey);
 	}
 
@@ -286,10 +274,10 @@ class Registry {
 	 */
 	protected function setCache()
 	{
-		$this->storage = Cache::rememberForever($this->config['cache'], function()
+		$this->storage = Cache::rememberForever(config('registry.cache'), function()
 		{
 			$cache = array();
-			foreach($this->database->table($this->config['table'])->get() as $setting)
+			foreach($this->database->table(config('registry.table'))->get() as $setting)
 			{
 				$cache[$setting->key] = json_decode($setting->value, true);
 			}

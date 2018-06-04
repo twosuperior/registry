@@ -20,7 +20,7 @@ class RegistryServiceProvider extends ServiceProvider {
     public function boot()
     {
 		$this->publishes([
-    			$this->guessPackagePath() . '/config/config.php' => config_path('registry.php')
+    			$this->guessPackagePath() . '/config/registry.php' => config_path('registry.php')
 		], 'config');
 
 		// Publish your migrations
@@ -36,23 +36,19 @@ class RegistryServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-		$this->registerRegistry();
-    }
-
-	/**
-	* Register the collection repository.
-	*
-	* @return void
-	*/
-	protected function registerRegistry()
-	{
+		// merge config
+		$this->mergeConfigFrom(
+			$this->guessPackagePath() . '/config/registry.php', 'registry'
+		);
+		
+		// register package
 		$this->app->singleton('registry', function()
 		{
-			$config = $this->app->config->get('registry', array());
-			return new Registry($this->app['db'], $config);
+			// get as new object
+			return new Registry($this->app['db']);
 		});
-	}
-	
+    }
+
     /**
      * Get the services provided by the provider.
      *
