@@ -264,6 +264,7 @@ class Registry {
 	{
 		if (!isset($this->storage[$key])) return null;
 		$object = $this->storage[$key];
+		if (!$searchKey) return $object;
 		return array_get($object, $searchKey);
 	}
 
